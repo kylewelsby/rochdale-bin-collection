@@ -40,7 +40,6 @@ const mixedRecycling: Bin = {
 };
 
 async function fetchPage(
-  postcode: string,
   uprn: string,
 ): Promise<CollectionDate[]> {
   const formData = new FormData();
@@ -100,10 +99,12 @@ function binFromIcon(icon: string): Bin {
 }
 export const handler = async (req: Request, ctx: HandlerContext) => {
   const url = new URL(req.url);
-  const postCode = url.searchParams.get("postcode") || "";
-  const uprn = url.searchParams.get("uprn") || "";
+  const uprn = url.searchParams.get("uprn");
+  if (!uprn) {
+    return new Response("Missing UPRN, find UPRN using https://rochdale-bin-collection.deno.dev/uprn?postcode={postcode}", { status: 400 });
+  }
 
-  const collection = await fetchPage(postCode, uprn);
+  const collection = await fetchPage(uprn);
 
   const body = JSON.stringify(collection);
   return new Response(body);
